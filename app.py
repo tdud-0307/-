@@ -293,6 +293,99 @@ with st.expander("물리 공식 설명"):
     st.latex(r"\sum F = ma")
     st.write("뉴턴 제2법칙: 알짜힘에 따라 가속도가 결정됨")
 
+
+import plotly.graph_objects as go
+import streamlit as st
+import numpy as np
+
+# 예시 비행 경로: 거리(km), 고도(km)
+distance = np.linspace(0, 180, 61)
+altitude = 11 * (1 - np.exp(-distance / 35))
+
+fig = go.Figure(
+    data=[
+        go.Scatter(
+            x=distance,
+            y=altitude,
+            mode="lines",
+            line=dict(width=3),
+            name="비행 경로"
+        ),
+        go.Scatter(
+            x=[distance[0]],
+            y=[altitude[0]],
+            mode="text",
+            text=["✈️"],
+            textfont=dict(size=30),
+            name="터보팬 여객기"
+        )
+    ]
+)
+
+frames = []
+for i in range(len(distance)):
+    frames.append(
+        go.Frame(
+            data=[
+                go.Scatter(
+                    x=distance[:i+1],
+                    y=altitude[:i+1],
+                    mode="lines",
+                    line=dict(width=3)
+                ),
+                go.Scatter(
+                    x=[distance[i]],
+                    y=[altitude[i]],
+                    mode="text",
+                    text=["✈️"],
+                    textfont=dict(size=30)
+                )
+            ],
+            name=str(i)
+        )
+    )
+
+fig.frames = frames
+
+fig.update_layout(
+    title="✈️ 성층권을 향해 비행하는 여객기",
+    xaxis_title="비행 거리 (km)",
+    yaxis_title="고도 (km)",
+    xaxis=dict(range=[0, 180]),
+    yaxis=dict(range=[0, 13]),
+    height=500,
+    updatemenus=[{
+        "type": "buttons",
+        "buttons": [
+            {
+                "label": "▶ 비행 시작",
+                "method": "animate",
+                "args": [
+                    None,
+                    {
+                        "frame": {"duration": 100, "redraw": True},
+                        "transition": {"duration": 0},
+                        "fromcurrent": True
+                    }
+                ]
+            },
+            {
+                "label": "⏸ 정지",
+                "method": "animate",
+                "args": [
+                    [None],
+                    {
+                        "frame": {"duration": 0, "redraw": False},
+                        "mode": "immediate"
+                    }
+                ]
+            }
+        ]
+    }]
+)
+
+st.plotly_chart(fig, use_container_width=True)
+
 st.warning(
     "이 시뮬레이션은 교육용 근사 모델입니다. "
     "실제 항공기의 성능이나 안전성을 예측하는 데 사용하지 마세요."
